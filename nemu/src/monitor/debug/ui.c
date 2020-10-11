@@ -1,6 +1,7 @@
 #include <isa.h>
 #include "expr.h"
 #include "watchpoint.h"
+#include "memory/paddr.h"
 
 #include <stdlib.h>
 #include <readline/readline.h>
@@ -39,6 +40,50 @@ static int cmd_q(char *args) {
 
 static int cmd_help(char *args);
 
+static int cmd_si(char *args) {
+  int n;
+  if (args == NULL) {
+    n = 1;
+  } else {
+    n = atoi(args);
+  }
+  cpu_exec(n);
+  return 0;
+}
+
+static int cmd_info(char *args) {
+  if (!strcmp(args, "r")) {
+    isa_reg_display();
+    return 0;
+  }
+  return -1;
+}
+
+static int cmd_x(char *args) {
+  if (args == NULL) {
+    return 0;
+  }
+  char* token;
+  token = strtok(args, " ");
+  int64_t n = -1;
+  sscanf(token, "%ld", &n);
+  if (n < 0) {
+    printf("Invalid number\n");
+    return 0;
+  }
+  token = strtok(NULL, "");
+  if (token == NULL) {
+    return 0;
+  }
+  uint32_t val;
+  sscanf(token, "0x%x", &val);
+  for (int64_t i = 0; i < n; i++) {
+    printf("0x%08lx   ", val + i * 4);
+    printf("0x%08x\n", paddr_read(val + i * 4, 4));
+  }
+  return 0;
+}
+
 static struct {
   char *name;
   char *description;
@@ -50,6 +95,9 @@ static struct {
 
   /* TODO: Add more commands */
 
+  { "si", "si [N] - Let program excute N steps, default N is 1", cmd_si },
+  { "info", "info [rw] r - print the status of regs, w - print watching point info", cmd_info },
+  { "x", "x [N] [EXPR], evaluate the EXPR(TODO), use the result as the start address and output N consecutive 4 bytes in hex form", cmd_x },
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))

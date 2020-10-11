@@ -42,6 +42,10 @@ void reg_test() {
 }
 
 void isa_reg_display() {
+  int i;
+  for (i = R_EAX; i <= R_EDI; i++) {
+    printf("%-15s0x%-15X%-15d\n", regsl[i], reg_l(i), reg_l(i));
+  }
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
