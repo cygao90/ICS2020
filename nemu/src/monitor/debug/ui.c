@@ -84,6 +84,12 @@ static int cmd_x(char *args) {
   return 0;
 }
 
+static int cmd_p(char *args) {
+  bool success = true;
+  printf("%u\n", expr(args, &success));
+  return 0;
+}
+
 static struct {
   char *name;
   char *description;
@@ -98,6 +104,7 @@ static struct {
   { "si", "si [N] - Let program excute N steps, default N is 1", cmd_si },
   { "info", "info [rw] r - print the status of regs, w - print watching point info", cmd_info },
   { "x", "x [N] [EXPR], evaluate the EXPR(TODO), use the result as the start address and output N consecutive 4 bytes in hex form", cmd_x },
+  { "p", "evaluate", cmd_p },
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))

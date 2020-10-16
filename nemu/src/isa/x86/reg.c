@@ -46,8 +46,16 @@ void isa_reg_display() {
   for (i = R_EAX; i <= R_EDI; i++) {
     printf("%-15s0x%-15X%-15d\n", regsl[i], reg_l(i), reg_l(i));
   }
+  printf("%-15s0x%-15X%-15d\n", "pc", cpu.pc, cpu.pc);
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
+  *success = true;
+  if (strcmp(s, "pc") == 0) return cpu.pc;
+  int i;
+  for (i = R_EAX; i <= R_EDI; i++) {
+    if (strcmp(s, regsl[i]) == 0) return reg_l(i);
+  }
+  *success = false;
   return 0;
 }
