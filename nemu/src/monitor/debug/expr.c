@@ -1,12 +1,12 @@
 #include <isa.h>
-
+#include <stdio.h>
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ,
+  TK_NOTYPE = 256, TK_EQ, TK_NUM,
 
   /* TODO: Add more token types */
 
@@ -24,6 +24,12 @@ static struct rule {
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus
   {"==", TK_EQ},        // equal
+  {"-", '-'},           // minus
+  {"/", '/'},           // divide
+  {"\\*", '*'},         // mult
+  {"\\(", '('},         // parentheses_l
+  {"\\)", ')'},         // parentheses_r
+  {"[0-9]+", TK_NUM},      // decimal
 };
 
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
@@ -61,17 +67,17 @@ static bool make_token(char *e) {
   regmatch_t pmatch;
 
   nr_token = 0;
-
+  memset(tokens, 0, sizeof(tokens));
   while (e[position] != '\0') {
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i ++) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
-
+/*
         Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
-
+*/
         position += substr_len;
 
         /* TODO: Now a new token is recognized with rules[i]. Add codes
@@ -79,8 +85,27 @@ static bool make_token(char *e) {
          * of tokens, some extra actions should be performed.
          */
 
+        if (substr_len > 32) {
+          printf("%.*s  Too long!!\n", substr_len, substr_start);
+          return false;
+        }
+
+        if (nr_token >= 32) {
+          printf("Too many tokens(32)!!\n");
+          return false;
+        }
+
         switch (rules[i].token_type) {
-          default: TODO();
+          case TK_NOTYPE:
+            break;
+          case TK_NUM:
+          case TK_EQ:
+            strncpy((char*)&tokens[nr_token].str, substr_start, substr_len);
+            tokens[nr_token].str[substr_len] = '\0';
+          default:
+            tokens[nr_token].type = rules[i].token_type;
+            nr_token++;
+            break;
         }
 
         break;
@@ -96,6 +121,135 @@ static bool make_token(char *e) {
   return true;
 }
 
+static bool is_opt(int opt) {
+  if (opt == '+' || opt == '-' || opt == '*' || opt == '/' || opt == TK_EQ) {
+    return true;
+  }
+  return false;
+}
+
+static int opt_level(int opt, int* current) {
+  int level = 0;
+  switch (opt) {
+    case '+':
+    case '-':
+      level = 4;
+      break;
+    case '*':
+    case '/':
+      level = 3;
+      break;
+    case TK_EQ:
+      level = 7;
+      break;
+  }
+  if (level > *current) {
+    *current = level;
+    return 1;
+  }
+  else if (level < *current) {
+    return -1;
+  }
+  else {
+    return 0;
+  }
+}
+
+static bool check_parentheses(int p, int q) {
+  int top = 0;
+  //int stack[32];
+  bool is_first_matched = true;
+
+  if (tokens[p].type != '(' || tokens[q].type != ')') {
+    return false;
+  }
+
+  int i;
+  for (i = p; i <= q; i++) {
+    if (tokens[i].type == '(') {
+      top++;
+    }
+    else if (tokens[i].type == ')') {
+      top--;
+      if (top == 0 && i != q) {
+        is_first_matched = false;
+      }
+    }
+  }
+  if (top != 0 || is_first_matched == false) 
+    return false;
+  else
+    return true;
+}
+
+static uint32_t get_val(int p) {
+  uint32_t val;
+  if (tokens[p].type == TK_NUM) {
+    sscanf(tokens[p].str, "%d", &val);
+  }
+  return val;
+}
+
+static int get_main_opt(int p, int q) {
+  int parentness = 0, cur = 0;
+  int pos = 0;
+  int i;
+  for (i = p; i <= q; i++) {
+    int type = tokens[i].type;
+
+    if (type == '(') {
+      parentness++;
+      continue;
+    }
+    else if (type == ')') {
+      parentness--;
+      continue;
+    }
+
+    if (is_opt(type) && parentness == 0) { // if opt and not surrounded by parentness
+      // find the highest level
+      if (opt_level(type, &cur) >= 0) {
+        pos = i;
+      }
+    }
+  }
+  return pos;
+}
+
+static uint32_t eval(int p, int q) {
+  if (p > q) {
+    /* Bad expression */
+    assert(0);
+  }
+  else if (p == q) {
+    /* Single token.
+     * For now this token should be a number.
+     * Return the value of the number.
+     */
+    return get_val(p);
+  }
+  else if (check_parentheses(p, q) == true) {
+    /* The expression is surrounded by a matched pair of parentheses.
+     * If that is the case, just throw away the parentheses.
+     */
+    return eval(p + 1, q - 1);
+  }
+  else {
+    /* We should do more things here. */
+    int32_t val1, val2;
+    int main_opt = get_main_opt(p, q);
+    val1 = eval(p, main_opt - 1);
+    val2 = eval(main_opt + 1, q);
+
+    switch (tokens[main_opt].type) {
+      case '+': return val1 + val2;
+      case '-': return val1 - val2;
+      case '*': return val1 * val2;
+      case '/': return val1 / val2;
+      default: assert(0);
+    }
+  }
+}
 
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
@@ -104,7 +258,7 @@ word_t expr(char *e, bool *success) {
   }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
-
-  return 0;
+  //TODO();
+  *success = true;
+  return eval(0, nr_token - 1);
 }

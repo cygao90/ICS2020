@@ -16,8 +16,44 @@ static char *code_format =
 "  return 0; "
 "}";
 
+
+static int choose(int n) {
+  return rand() % n;
+}
+
+static void gen_num() {
+  sprintf(buf + strlen(buf), "%u", (unsigned int)rand() % 10000);
+  buf[strlen(buf)] = '\0';
+}
+
+static void gen(char a) {
+  sprintf(buf + strlen(buf), "%c", a);
+  buf[strlen(buf)] = '\0';
+}
+
+static void gen_rand_op() {
+  char opt;
+  switch (rand() % 4) {
+    case 0: opt = '+'; break;
+    case 1: opt = '-'; break;
+    case 2: opt = '*'; break;
+    case 3: opt = '/'; break;
+  }
+  sprintf(buf + strlen(buf), "%c", opt);
+  buf[strlen(buf)] = '\0';
+}
+
 static inline void gen_rand_expr() {
-  buf[0] = '\0';
+  if (strlen(buf) < 1000) {
+    switch (choose(3)) {
+      case 0: gen_num(); break;
+      case 1: gen('('); gen_rand_expr(); gen(')'); break;
+      default: gen_rand_expr(); gen_rand_op(); gen_rand_expr(); break;
+    }
+  } else {
+    gen_num();
+  }
+  buf[strlen(buf)] = '\0';
 }
 
 int main(int argc, char *argv[]) {
@@ -29,8 +65,8 @@ int main(int argc, char *argv[]) {
   }
   int i;
   for (i = 0; i < loop; i ++) {
+    memset(buf, 0, strlen(buf));
     gen_rand_expr();
-
     sprintf(code_buf, code_format, buf);
 
     FILE *fp = fopen("/tmp/.code.c", "w");
@@ -44,8 +80,13 @@ int main(int argc, char *argv[]) {
     fp = popen("/tmp/.expr", "r");
     assert(fp != NULL);
 
+    char buf1[30] = { 0 };
+    fread(buf1, sizeof(buf1), 1, fp);
+    if (strlen(buf1) == 0)
+      continue;
+
     int result;
-    fscanf(fp, "%d", &result);
+    sscanf(buf1, "%d", &result);
     pclose(fp);
 
     printf("%u %s\n", result, buf);
