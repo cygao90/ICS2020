@@ -3,8 +3,8 @@
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
-#include <regex.h>
 #include "memory/paddr.h"
+#include <regex.h>
 
 enum {
     TK_NOTYPE = 256,
@@ -89,8 +89,8 @@ bool make_token(char* e)
                 char* substr_start = e + position;
                 int substr_len = pmatch.rm_eo;
 
-                Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s\n",
-                    i, rules[i].regex, position, substr_len, substr_len, substr_start);
+                // Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s\n",
+                //     i, rules[i].regex, position, substr_len, substr_len, substr_start);
 
                 position += substr_len;
 

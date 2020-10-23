@@ -56,6 +56,10 @@ static int cmd_info(char *args) {
     isa_reg_display();
     return 0;
   }
+  else if (!strcmp(args, "w")) {
+    watchpoint_display();
+    return 0;
+  }
   return -1;
 }
 
@@ -91,7 +95,16 @@ static int cmd_p(char *args) {
 }
 
 static int cmd_w(char *args) {
-  
+  WP* p = new_wp();
+  strcpy(p->expr, args);
+  return 0;
+}
+
+static int cmd_d(char *args) {
+  int no;
+  sscanf(args, "%d", &no);
+  free_wp(no);
+  return 0;
 }
 
 static struct {
@@ -110,6 +123,7 @@ static struct {
   { "x", "x [N] [EXPR], evaluate the EXPR, use the result as the start address and output N consecutive 4 bytes in hex form", cmd_x },
   { "p", "evaluate", cmd_p },
   { "w", "w [EXPR] watchpoint, stop the program when EXPR is true", cmd_w },
+  { "d", "d [N] delete the watchpoint", cmd_d },
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
