@@ -119,4 +119,4 @@ clean:
 	$(MAKE) -C tools/qemu-diff clean
 	$(MAKE) -C tools/kvm-diff clean
 count:
-	find . -name "*.c" -or -name "*.h" -print | xargs grep -v "^$$" | wc -l
+	find . "(" -name "*.c" -or -name "*.h" ")" -print | xargs grep -v "^$$" | wc -l
