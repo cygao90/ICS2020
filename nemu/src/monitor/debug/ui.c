@@ -79,8 +79,14 @@ static int cmd_x(char *args) {
   if (token == NULL) {
     return 0;
   }
+  /*
   uint32_t val;
   sscanf(token, "0x%x", &val);
+  */
+  uint32_t val;
+  bool success;
+  val = expr(token, &success);
+  assert(success == true);
   for (int64_t i = 0; i < n; i++) {
     printf("0x%08lx   ", val + i * 4);
     printf("0x%08x\n", paddr_read(val + i * 4, 4));
