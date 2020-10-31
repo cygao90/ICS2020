@@ -11,6 +11,10 @@ def_EHelper(inv) {
 
   uint32_t temp[2];
   s->seq_pc = cpu.pc;
+
+  extern char log_bytebuf[];
+  memset(log_bytebuf, 0, 80);
+
   temp[0] = instr_fetch(&s->seq_pc, 4);
   temp[1] = instr_fetch(&s->seq_pc, 4);
 

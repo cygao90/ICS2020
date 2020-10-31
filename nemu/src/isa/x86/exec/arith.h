@@ -6,7 +6,15 @@ static inline def_EHelper(add) {
 }
 
 static inline def_EHelper(sub) {
-  TODO();
+  // TODO();
+  rtl_li(s, t0, id_src1->simm);
+  rtl_li(s, t1, *ddest);
+  rtl_subi(s, ddest, t1, *t0);
+  rtl_is_sub_overflow(s, s0, ddest, t1, t0, id_dest->width);
+  rtl_set_OF(s, s0);
+  rtl_update_ZFSF(s, ddest, id_dest->width);
+  rtl_is_sub_carry(s, s0, t1, t0);
+  rtl_set_CF(s, s0);
   print_asm_template2(sub);
 }
 

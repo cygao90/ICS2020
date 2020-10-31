@@ -24,12 +24,20 @@ static inline def_EHelper(jmp_rm) {
 
 static inline def_EHelper(call) {
   // the target address is calculated at the decode stage
-  TODO();
+  // TODO();
+  rtl_push(s, &s->seq_pc);
+  rtl_jr(s, &s->jmp_pc);
   print_asm("call %x", s->jmp_pc);
 }
 
 static inline def_EHelper(ret) {
-  TODO();
+  // TODO();
+  if (s->isa.is_operand_size_16 == true) {
+    rtl_pop(s, &s->seq_pc);
+    s->seq_pc &= 0x0000FFFF;
+  } else {
+    rtl_pop(s, &s->seq_pc);
+  }
   print_asm("ret");
 }
 

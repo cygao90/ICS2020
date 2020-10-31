@@ -42,9 +42,33 @@ typedef struct {
       };
     };
   }; 
-  
 
   vaddr_t pc;
+
+  union {
+    struct {
+      uint32_t CF       : 1;
+      uint32_t resv1    : 1;
+      uint32_t PF       : 1;
+      uint32_t resv2    : 1;
+      uint32_t AF       : 1;
+      uint32_t resv3    : 1;
+      uint32_t ZF       : 1;
+      uint32_t SF       : 1;
+      uint32_t TF       : 1;
+      uint32_t IF       : 1;
+      uint32_t DF       : 1;
+      uint32_t OF       : 1;
+      uint32_t IOPL     : 2;
+      uint32_t NT       : 1;
+      uint32_t resv4    : 1;
+      uint32_t RF       : 1;
+      uint32_t VM       : 1;
+      uint32_t resv5    : 14;
+    };
+    uint32_t val;
+  } EFLAGS;
+
 } x86_CPU_state;
 
 // decode
