@@ -47,6 +47,9 @@ void isa_reg_display() {
     printf("%-15s0x%-15X%-15d\n", regsl[i], reg_l(i), reg_l(i));
   }
   printf("%-15s0x%-15X%-15d\n", "pc", cpu.pc, cpu.pc);
+  printf("CF %d  PF %d  AF %d  ZF %d  SF %d  TF %d\n", 
+          eflag(CF), eflag(PF), eflag(AF), eflag(ZF), eflag(SF), eflag(TF));
+  printf("DF %d  OF %d  NT %d  RF %d  VM %d\n", eflag(DF), eflag(OF), eflag(NT), eflag(RF), eflag(VM));
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
