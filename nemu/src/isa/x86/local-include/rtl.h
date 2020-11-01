@@ -120,8 +120,7 @@ static inline def_rtl(is_add_carry, rtlreg_t* dest,
     const rtlreg_t* res, const rtlreg_t* src1) {
   // dest <- is_carry(src1 + src2)
   // TODO();
-  rtl_add(s, t0, res, src1);
-  if (*t0 < *res || *t0 < *src1)
+  if (*res < *src1)
     *dest = true;
   else
     *dest = false;

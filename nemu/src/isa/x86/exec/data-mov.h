@@ -5,7 +5,7 @@ static inline def_EHelper(mov) {
 
 static inline def_EHelper(push) {
   // TODO();
-  rtl_push(s, dsrc1);
+  rtl_push(s, ddest);
   print_asm_template1(push);
 }
 
@@ -25,7 +25,9 @@ static inline def_EHelper(popa) {
 }
 
 static inline def_EHelper(leave) {
-  TODO();
+  // TODO();
+  rtl_mv(s, &reg_l(R_ESP), &reg_l(R_EBP));
+  rtl_pop(s, &reg_l(R_EBP));
   print_asm("leave");
 }
 

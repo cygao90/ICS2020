@@ -308,8 +308,16 @@ static inline def_DHelper(push_I) {
   decode_op_I(s, id_dest, true);
 }
 
-static inline def_DHelper(xor_E_R) {
+static inline def_DHelper(xor_G2E) {
   operand_rm(s, id_dest, true, id_src1, true);
+}
+
+static inline def_DHelper(cmp_E2G) {
+  operand_rm(s, id_dest, true, id_src1, true);
+}
+
+static inline def_DHelper(inc_r) {
+  decode_op_r(s, id_dest, true);
 }
 
 static inline void operand_write(DecodeExecState *s, Operand *op, rtlreg_t* src) {

@@ -31,8 +31,12 @@ static inline def_rtl(sext, rtlreg_t* dest, const rtlreg_t* src1, int width) {
   // dest <- signext(src1[(width * 8 - 1) .. 0])
   // TODO();
   assert(width > 0 && width <= 4);
-  int32_t val = *src1;
-  *dest = (val << (32 - width * 8)) >> (32 - width * 8);
+  switch (width) {
+    case 1: *dest = (int8_t)(*src1); break;
+    case 2: *dest = (int16_t)(*src1); break;
+    case 4: *dest = (int32_t)(*src1); break;
+    default: assert(0);
+  }
 }
 
 static inline def_rtl(zext, rtlreg_t* dest, const rtlreg_t* src1, int width) {

@@ -6,33 +6,45 @@ static inline def_EHelper(test) {
 }
 
 static inline def_EHelper(and) {
-  TODO();
+  // TODO();
+  rtl_sext(s, t0, dsrc1, id_src1->width);
+  rtl_and(s, ddest, ddest, t0);
+  rtl_set_CF(s, rz);
+  rtl_set_OF(s, rz);
+  rtl_update_ZFSF(s, ddest, id_dest->width);
   print_asm_template2(and);
 }
 
 static inline def_EHelper(xor) {
   // TODO();
-  rtl_xor(s, ddest, dsrc1, dsrc1);
-  rtl_li(s, t0, 0);
-  rtl_set_CF(s, t0);
-  rtl_set_OF(s, t0);
+  rtl_sext(s, t0, dsrc1, id_src1->width);
+  rtl_xor(s, ddest, ddest, t0);
+  rtl_set_CF(s, rz);
+  rtl_set_OF(s, rz);
   rtl_update_ZFSF(s, ddest, id_dest->width);
   print_asm_template2(xor);
 }
 
 static inline def_EHelper(or) {
-  TODO();
+  // TODO();
+  rtl_sext(s, t0, dsrc1, id_src1->width);
+  rtl_or(s, ddest, dsrc1, t0);
+  rtl_set_CF(s, rz);
+  rtl_set_OF(s, rz);
+  rtl_update_ZFSF(s, ddest, id_dest->width);
   print_asm_template2(or);
 }
 
 static inline def_EHelper(not) {
-  TODO();
+  // TODO();
+  rtl_not(s, ddest, dsrc1);
   print_asm_template1(not);
 }
 
 static inline def_EHelper(sar) {
-  TODO();
+  // TODO();
   // unnecessary to update CF and OF in NEMU
+  rtl_sar(s, ddest, ddest, dsrc1);
   print_asm_template2(sar);
 }
 
