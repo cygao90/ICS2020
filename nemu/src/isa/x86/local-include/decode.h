@@ -56,7 +56,12 @@ static inline def_DopHelper(SI) {
    */
   // TODO();
   word_t imm = instr_fetch(&s->seq_pc, op->width);
-  operand_imm(s, op, load_val, imm, op->width);
+  sword_t tmp;
+  switch (op->width) {
+    case 1: tmp = (int8_t)imm; break;
+    case 4: tmp = (int32_t)imm; break;
+  }
+  operand_imm(s, op, load_val, (word_t)tmp, op->width);
 }
 
 /* I386 manual does not contain this abbreviation.
