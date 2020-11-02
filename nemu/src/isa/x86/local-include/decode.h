@@ -303,11 +303,6 @@ static inline def_DHelper(push_r) {
   decode_op_r(s, id_dest, true);
 }
 
-static inline def_DHelper(push_I) {
-  id_src1->width = 4;
-  decode_op_I(s, id_dest, true);
-}
-
 static inline def_DHelper(xor_G2E) {
   operand_rm(s, id_dest, true, id_src1, true);
 }
@@ -321,6 +316,10 @@ static inline def_DHelper(cmp_G2E) {
 }
 
 static inline def_DHelper(imul_E2G) {
+  operand_rm(s, id_dest, true, id_src1, true);
+}
+
+static inline def_DHelper(test_r) {
   operand_rm(s, id_dest, true, id_src1, true);
 }
 
