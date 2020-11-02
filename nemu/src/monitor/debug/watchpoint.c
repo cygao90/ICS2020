@@ -35,7 +35,7 @@ WP* new_wp() {
   tmp_h->next = tmp_f;
   free_ = tmp_f->next;
   tmp_f->next = NULL;
-  return tmp_h;
+  return tmp_h->next;
 }
 
 void free_wp(int NO) {
