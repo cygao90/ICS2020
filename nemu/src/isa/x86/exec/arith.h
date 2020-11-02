@@ -46,7 +46,8 @@ static inline def_EHelper(inc) {
 }
 
 static inline def_EHelper(dec) {
-  TODO();
+  // TODO();
+  rtl_subi(s, ddest, ddest, 1);
   print_asm_template1(dec);
 }
 
