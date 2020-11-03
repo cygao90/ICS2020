@@ -239,6 +239,12 @@ static inline def_DHelper(gp2_Ib2E) {
   decode_op_I(s, id_src1, true);
 }
 
+static inline def_DHelper(gp1_Ib2E) {
+  operand_rm(s, id_dest, true, NULL, false);
+  id_src1->width = 1;
+  decode_op_I(s, id_src1, true);
+}
+
 /* Ev <- GvIb
  * use for shld/shrd */
 static inline def_DHelper(Ib_G2E) {
@@ -298,29 +304,14 @@ static inline def_DHelper(out_a2dx) {
   operand_reg(s, id_dest, true, R_DX, 2);
 }
 
-static inline def_DHelper(push_r) {
-  id_src1->width = 4;
-  decode_op_r(s, id_dest, true);
+static inline def_DHelper(Ew2Gv) {
+  id_src1->width = 2;
+  operand_rm(s, id_src1, true, id_dest, false);
 }
 
-static inline def_DHelper(xor_G2E) {
-  operand_rm(s, id_dest, true, id_src1, true);
-}
-
-static inline def_DHelper(cmp_E2G) {
-  operand_rm(s, id_dest, true, id_src1, true);
-}
-
-static inline def_DHelper(cmp_G2E) {
-  operand_rm(s, id_dest, true, id_src1, true);
-}
-
-static inline def_DHelper(imul_E2G) {
-  operand_rm(s, id_dest, true, id_src1, true);
-}
-
-static inline def_DHelper(test_r) {
-  operand_rm(s, id_dest, true, id_src1, true);
+static inline def_DHelper(Eb2Gv) {
+  id_src1->width = 1;
+  operand_rm(s, id_src1, true, id_dest, false);
 }
 
 static inline void operand_write(DecodeExecState *s, Operand *op, rtlreg_t* src) {

@@ -41,10 +41,26 @@ static inline def_EHelper(leave) {
 
 static inline def_EHelper(cltd) {
   if (s->isa.is_operand_size_16) {
-    TODO();
+    // TODO();
+    rtl_lr(s, s0, R_AX, 2);
+    if ((int16_t)(*s0) < 0) {
+      rtl_li(s, s1, 0xFFFF);
+      rtl_sr(s, R_DX, s1, 2);
+    } else {
+      rtl_li(s, s1, 0);
+      rtl_sr(s, R_DX, s1, 2);
+    }
   }
   else {
-    TODO();
+    // TODO();
+    rtl_lr(s, s0, R_EAX, 4);
+    if ((int32_t)(*s0) < 0) {
+      rtl_li(s, s1, 0xFFFFFFFF);
+      rtl_sr(s, R_EDX, s1, 4);
+    } else {
+      rtl_li(s, s1, 0);
+      rtl_sr(s, R_EDX, s1, 4);
+    }
   }
   print_asm(s->isa.is_operand_size_16 ? "cwtl" : "cltd");
 }
