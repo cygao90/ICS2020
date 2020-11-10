@@ -50,6 +50,12 @@ static inline def_EHelper(in) {
 }
 
 static inline def_EHelper(out) {
-  TODO();
+  // TODO();
+  switch (id_src1->width) {
+    case 1: pio_write_b(id_dest->val, id_src1->val); break;
+    case 2: pio_write_w(id_dest->val, id_src1->val); break;
+    case 4: pio_write_l(id_dest->val, id_src1->val); break;
+    default: panic("Invalid width");
+  }
   print_asm_template2(out);
 }
