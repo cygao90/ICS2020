@@ -56,7 +56,7 @@ static inline def_DopHelper(SI) {
    */
   // TODO();
   word_t imm = instr_fetch(&s->seq_pc, op->width);
-  sword_t tmp;
+  sword_t tmp = 0;
   switch (op->width) {
     case 1: tmp = (int8_t)imm; break;
     case 4: tmp = (int32_t)imm; break;
