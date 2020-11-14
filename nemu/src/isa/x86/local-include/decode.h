@@ -239,12 +239,6 @@ static inline def_DHelper(gp2_Ib2E) {
   decode_op_I(s, id_src1, true);
 }
 
-static inline def_DHelper(gp1_Ib2E) {
-  operand_rm(s, id_dest, true, NULL, false);
-  id_src1->width = 1;
-  decode_op_I(s, id_src1, true);
-}
-
 /* Ev <- GvIb
  * use for shld/shrd */
 static inline def_DHelper(Ib_G2E) {
