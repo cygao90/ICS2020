@@ -9,8 +9,8 @@ uint8_t* new_space(int size);
 typedef struct {
   char *name;
   // we treat ioaddr_t as paddr_t here
-  paddr_t low;
-  paddr_t high;
+  paddr_t low; // start address
+  paddr_t high; // end address
   uint8_t *space;
   io_callback_t callback;
 } IOMap;
