@@ -5,6 +5,8 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
+#define MAX_BUF 1024
+
 #define is_digit(ch) ((ch) >= '0' && (ch) <= '9')
 
 #define do_dec                                                                 \
@@ -136,10 +138,22 @@ static int print_char(char *buf, char ch, int len) {
   return len;
 }
 
-int printf(const char *fmt, ...) { return 0; }
+int printf(const char *fmt, ...) {
+  char buf[MAX_BUF];
+  int res;
+  va_list arg;
+
+  va_start(arg, fmt);
+  res = vsprintf(buf, fmt, arg);
+  va_end(arg);
+  putstr(buf);
+  
+  return res;
+}
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
   const char *buf = fmt;
+  char* tmp = out;
 
   while (*buf != '\0') {
 
@@ -184,7 +198,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
     buf++;
   }
   *out = '\0';
-  return 0;
+  return out - tmp;
 }
 
 int sprintf(char *out, const char *fmt, ...) {
