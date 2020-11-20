@@ -82,11 +82,40 @@ static inline def_EHelper(shr) {
   print_asm_template2(shr);
 }
 
-
 static inline def_EHelper(setcc) {
   uint32_t cc = s->opcode & 0xf;
   rtl_setcc(s, ddest, cc);
   operand_write(s, id_dest, ddest);
 
   print_asm("set%s %s", get_cc_name(cc), id_dest->str);
+}
+
+static inline def_EHelper(rol) {
+#define CASE(i, len)                                                           \
+  case (i):                                                                    \
+    count = *dsrc1 & (len);                                                    \
+    while (count != 0) {                                                       \
+      tmpcf = (*ddest >> (len)) & 1;                                           \
+      *ddest = (*ddest << 1) | tmpcf;                                          \
+      count--;                                                                 \
+    }                                                                          \
+    break;
+
+  uint32_t count = 0, tmpcf = 0;
+  switch (id_dest->width) {
+    CASE(1, 7)
+    CASE(2, 15)
+    CASE(4, 31)
+  }
+  rtl_set_CF(s, &tmpcf);
+  if (count == 1) {
+    if (((*ddest >> 7) & 1) != tmpcf) {
+      rtl_li(s, s0, 1);
+      rtl_set_OF(s, s0);
+    } else {
+      rtl_li(s, s0, 1);
+      rtl_set_OF(s, s0);
+    }
+  }
+  operand_write(s, id_dest, ddest);
 }
