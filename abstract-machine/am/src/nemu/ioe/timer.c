@@ -1,14 +1,15 @@
 #include <am.h>
 #include <nemu.h>
 
-uint32_t st_time = 0;
+static uint64_t st_time = 0;
 
 void __am_timer_init() {
-  st_time = inl(RTC_ADDR);
+  st_time = inl(RTC_ADDR + 4) * 1000000 + inl(RTC_ADDR) ;
 }
 
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
-  uptime->us = (inl(RTC_ADDR) - st_time);
+  uint64_t cur_time = inl(RTC_ADDR + 4) * 1000000 + inl(RTC_ADDR);
+  uptime->us = cur_time - st_time;
 }
 
 void __am_timer_rtc(AM_TIMER_RTC_T *rtc) {
