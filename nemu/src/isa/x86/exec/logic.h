@@ -91,31 +91,118 @@ static inline def_EHelper(setcc) {
 }
 
 static inline def_EHelper(rol) {
-#define CASE(i, len)                                                           \
+#define CASEl(i, len)                                                          \
   case (i):                                                                    \
-    count = *dsrc1 & (len);                                                    \
+    count = *t0 & (len);                                                       \
     while (count != 0) {                                                       \
-      tmpcf = (*ddest >> (len)) & 1;                                           \
-      *ddest = (*ddest << 1) | tmpcf;                                          \
+      tmpcf = (*t1 >> (len)) & 1;                                              \
+      *t1 = (*t1 << 1) | tmpcf;                                                \
       count--;                                                                 \
     }                                                                          \
     break;
 
+  rtl_mv(s, t0, dsrc1);
+  rtl_mv(s, t1, ddest);
   uint32_t count = 0, tmpcf = 0;
   switch (id_dest->width) {
-    CASE(1, 7)
-    CASE(2, 15)
-    CASE(4, 31)
+    CASEl(1, 7)
+    CASEl(2, 15)
+    CASEl(4, 31)
   }
   rtl_set_CF(s, &tmpcf);
   if (count == 1) {
-    if (((*ddest >> 7) & 1) != tmpcf) {
+    if (((*t1 >> 7) & 1) != tmpcf) {
       rtl_li(s, s0, 1);
       rtl_set_OF(s, s0);
     } else {
+      rtl_li(s, s0, 0);
+      rtl_set_OF(s, s0);
+    }
+  }
+  operand_write(s, id_dest, t1);
+}
+
+static inline def_EHelper(bsr) {
+  rtl_mv(s, t0, dsrc1);
+  rtl_mv(s, t1, ddest);
+  if (t0 == 0) {
+    rtl_li(s, s0, 1);
+    rtl_set_ZF(s, s0);
+  } else {
+    uint32_t tmp = *t1 = id_src1->width * 8 - 1;
+    rtl_li(s, s0, 0);
+    rtl_set_ZF(s, s0);
+    while (((*t0 >> tmp) & 1) == 0) {
+      tmp -= 1;
+      *t1 = tmp;
+    }
+  }
+  operand_write(s, id_dest, t1);
+}
+
+static inline def_EHelper(ror) {
+#define CASEr(i, len)                                                          \
+  case (i):                                                                    \
+    count = *t0 & (len);                                                       \
+    while (count != 0) {                                                       \
+      tmpcf = *t1 & 1;                                                         \
+      *t1 = (*t1 >> 1) | (tmpcf << len);                                       \
+      count--;                                                                 \
+    }                                                                          \
+    break;
+
+  rtl_mv(s, t0, dsrc1);
+  rtl_mv(s, t1, ddest);
+  uint32_t count = 0, tmpcf = 0;
+  switch (id_dest->width) {
+    CASEr(1, 7)
+    CASEr(2, 15)
+    CASEr(4, 31)
+  }
+  if (count == 1) {
+    if (((*t1 >> 7) & 1) != ((*t1 >> 6) & 1)) {
       rtl_li(s, s0, 1);
+      rtl_set_OF(s, s0);
+    } else {
+      rtl_li(s, s0, 0);
       rtl_set_OF(s, s0);
     }
   }
   operand_write(s, id_dest, ddest);
+}
+
+static inline def_EHelper(shld) {
+  rtl_mv(s, t0, dsrc1);
+  rtl_mv(s, t1, dsrc2);
+  rtl_mv(s, s1, ddest);
+  uint8_t shift_amt = *t0 % 32;
+  uint32_t inBits = *t1;
+  if (shift_amt != 0) {
+    if (shift_amt < id_dest->width * 8) {
+      *s0 = ((*s1 >> (id_dest->width * 8 - shift_amt)) & 1);
+      rtl_set_CF(s, s0);
+    }
+    *s1 = *s1 << shift_amt;
+    *s1 |= ((inBits >> (id_src2->width * 8 - shift_amt)) & ((1 << shift_amt) - 1));
+    rtl_update_ZFSF(s, s1, id_dest->width);
+  }
+  operand_write(s, id_dest, s1);
+}
+
+static inline def_EHelper(shrd) {
+  rtl_mv(s, t0, dsrc1);
+  rtl_mv(s, t1, dsrc2);
+  rtl_mv(s, s1, ddest);
+  uint8_t shfit_amt = *t0 % 32;
+  uint32_t inBits = *t1;
+  if (shfit_amt != 0) {
+    if (shfit_amt < id_dest->width * 8) {
+      *s0 = (*s1 >> (shfit_amt - 1)) & 1;
+      rtl_set_CF(s, s0);
+    }
+    *s1 = *s1 >> shfit_amt;
+    *s1 |= (inBits & ((1 << shfit_amt) - 1)) << (id_src2->width * 8 - shfit_amt);
+    rtl_update_ZFSF(s, s1, id_dest->width);
+  }
+  operand_write(s, id_dest, s1);
 }

@@ -13,31 +13,31 @@ static inline void set_width(DecodeExecState *s, int width) {
 /* 0x80, 0x81, 0x83 */
 static inline def_EHelper(gp1) {
   switch (s->isa.ext_opcode) {
-    EX(0, add) EX(1, or) EX(2, adc) EMPTY(3)
-    EX(4, and) EX(5, sub) EX(6, xor) EX(7, cmp)
+    EXW(0, add, id_dest->width) EXW(1, or, id_dest->width) EXW(2, adc, id_dest->width) EMPTY(3)
+    EXW(4, and, id_dest->width) EXW(5, sub, id_dest->width) EXW(6, xor, id_dest->width) EXW(7, cmp, id_dest->width)
   }
 }
 
 /* 0xc0, 0xc1, 0xd0, 0xd1, 0xd2, 0xd3 */
 static inline def_EHelper(gp2) {
   switch (s->isa.ext_opcode) {
-    EX(0, rol) EMPTY(1) EMPTY(2) EMPTY(3)
-    EX(4, shl) EX(5, shr) EMPTY(6) EX(7, sar)
+    EXW(0, rol, id_dest->width) EXW(1, ror, id_dest->width) EMPTY(2) EMPTY(3)
+    EXW(4, shl, id_dest->width) EXW(5, shr, id_dest->width) EMPTY(6) EXW(7, sar, id_dest->width)
   }
 }
 
 /* 0xf6, 0xf7 */
 static inline def_EHelper(gp3) {
   switch (s->isa.ext_opcode) {
-    IDEXW(0, test_I, test, 1) EMPTY(1) EX(2, not) EX(3, neg)
-    EX(4, mul) EX(5, imul1) EX(6, div) EX(7, idiv)
+    IDEXW(0, test_I, test, id_dest->width) EMPTY(1) EXW(2, not, id_dest->width) EXW(3, neg, id_dest->width)
+    EXW(4, mul, id_dest->width) EXW(5, imul1, id_dest->width) EXW(6, div, id_dest->width) EXW(7, idiv, id_dest->width)
   }
 }
 
 /* 0xfe */
 static inline def_EHelper(gp4) {
   switch (s->isa.ext_opcode) {
-    EMPTY(0) EMPTY(1) EMPTY(2) EMPTY(3)
+    EXW(0, inc, 1) EMPTY(1) EMPTY(2) EMPTY(3)
     EMPTY(4) EMPTY(5) EMPTY(6) EMPTY(7)
   }
 }
@@ -96,9 +96,12 @@ static inline def_EHelper(2byte_esc) {
     IDEXW(0x9d, setcc_E, setcc, 1)
     IDEXW(0x9e, setcc_E, setcc, 1)
     IDEXW(0x9f, setcc_E, setcc, 1)
+    IDEX (0xa5, cl_G2E, shld)
+    IDEX (0xac, Ib_G2E, shrd)
     IDEX (0xaf, E2G, imul2)
     IDEX (0xb6, Eb2Gv, movzx)
     IDEX (0xb7, Ew2Gv, movzx)
+    IDEX (0xbd, E2G, bsr)
     IDEX (0xbe, Eb2Gv, movsx)
     IDEX (0xbf, Ew2Gv, movsx)
     default: exec_inv(s);
@@ -221,6 +224,7 @@ again:
     IDEX (0x8b, mov_E2G, mov)
     IDEX (0x8d, lea_M2G, lea)
     EX   (0x90, nop)
+    EX   (0x98, cwtl)
     EX   (0x99, cltd)
     IDEXW(0xa0, O2a, mov, 1)
     IDEX (0xa1, O2a, mov)
@@ -262,6 +266,7 @@ again:
     IDEXW(0xec, in_dx2a, in, 1)
     IDEX (0xed, in_dx2a, in)
     IDEXW(0xee, out_a2dx, out, 1)
+    IDEX (0xef, out_a2dx, out)
     IDEXW(0xf6, E, gp3, 1)
     IDEX (0xf7, E, gp3)
     IDEXW(0xfe, E, gp4, 1)
