@@ -242,6 +242,7 @@ static inline def_DHelper(gp2_Ib2E) {
 /* Ev <- GvIb
  * use for shld/shrd */
 static inline def_DHelper(Ib_G2E) {
+  // id_dest is E, id_drc2 is G, id_src1 is Ib
   operand_rm(s, id_dest, true, id_src2, true);
   id_src1->width = 1;
   decode_op_I(s, id_src1, true);
@@ -250,6 +251,7 @@ static inline def_DHelper(Ib_G2E) {
 /* Ev <- GvCL
  * use for shld/shrd */
 static inline def_DHelper(cl_G2E) {
+  // id_dest is E, id_src2 is G, id_src1 is cl
   operand_rm(s, id_dest, true, id_src2, true);
   // shift instructions will eventually use the lower
   // 5 bits of %cl, therefore it is OK to load %ecx
