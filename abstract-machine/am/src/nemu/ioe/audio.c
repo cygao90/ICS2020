@@ -36,14 +36,14 @@ void __am_audio_status(AM_AUDIO_STATUS_T *stat) {
 
 // This function is to write data into buffer
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
-  int len = ctl->buf.end - ctl->buf.start;
-  int sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
-  uint32_t count = inl(AUDIO_COUNT_ADDR), head = inl(AUDIO_HEAD_ADDR);//, tail = inl(AUDIO_TAIL_ADDR);
+  uint32_t len = ctl->buf.end - ctl->buf.start;
+  uint32_t sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
+  uint32_t head = inl(AUDIO_HEAD_ADDR);//, tail = inl(AUDIO_TAIL_ADDR);
   uint32_t sbuf = (uint32_t)AUDIO_SBUF_ADDR;
-  while(count + len > sbuf_size);
+  while(inl(AUDIO_COUNT_ADDR) + len > sbuf_size);
 
-  int free = sbuf_size - count;
-  int nwrite = len;
+  uint32_t free = sbuf_size - inl(AUDIO_COUNT_ADDR);
+  uint32_t nwrite = len;
   if (free < len)
     nwrite = free;
   
@@ -52,11 +52,12 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
     memcpy(sbuf + head, ctl->buf.start, nwrite);
     head += nwrite;
   } else {
-    int first_copy = sbuf_size - head;
+    uint32_t first_copy = sbuf_size - head;
     memcpy(sbuf + head, ctl->buf.start, first_copy);
     memcpy(sbuf, ctl->buf.start + first_copy, nwrite - first_copy);
     head = nwrite - first_copy;
   }
+  uint32_t count = inl(AUDIO_COUNT_ADDR);
   count += nwrite;
   outl(AUDIO_HEAD_ADDR, head);
   // outl(AUDIO_TAIL_ADDR, tail);
