@@ -1,6 +1,6 @@
 #include <common.h>
 
-// #ifdef HAS_IOE
+#ifdef HAS_IOE
 
 #include <device/map.h>
 #include <SDL2/SDL.h>
@@ -76,4 +76,4 @@ void init_audio() {
   sbuf = (void *)new_space(STREAM_BUF_MAX_SIZE);
   add_mmio_map("audio-sbuf", STREAM_BUF, (void *)sbuf, STREAM_BUF_MAX_SIZE, NULL);
 }
-// #endif	/* HAS_IOE */
+#endif	/* HAS_IOE */
