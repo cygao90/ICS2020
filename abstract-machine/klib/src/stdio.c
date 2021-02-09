@@ -5,7 +5,7 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-#define MAX_BUF 1024
+#define MAX_BUF 2048
 
 #define is_digit(ch) ((ch) >= '0' && (ch) <= '9')
 
@@ -66,6 +66,14 @@
   case 'O':                                                                    \
     oct  = va_arg(ap, int);                                                    \
     out += print_num(out, oct, 8, len, upper_case, zero_filling);              \
+    break;                                                                     \
+
+#define do_pointer                                                             \
+  case 'P':                                                                    \
+    upper_case = true;                                                         \
+  case 'p':                                                                    \
+    hex = va_arg(ap, int);                                                     \
+    out += print_num(out, hex, 16, len, upper_case, zero_filling);             \
     break;                                                                     \
 
 #define CASE(func) do_##func break;
@@ -176,6 +184,8 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
         CASE(oct) // %[oO]
 
         CASE(dec) // %[dD]
+
+        CASE(pointer) // %[pP]
 
         CASE(hex) // %[xX]
 
