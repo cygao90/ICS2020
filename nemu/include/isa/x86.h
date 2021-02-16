@@ -69,6 +69,20 @@ typedef struct {
     uint32_t val;
   } EFLAGS;
 
+  struct {
+    uint32_t CS;
+    uint32_t SS;
+    uint32_t DS;
+    uint32_t ES;
+    uint32_t FS;
+    uint32_t GS;
+  } SEGMENT_REG;
+
+  struct {
+    uint32_t base;
+    uint16_t limit;
+  } IDTR;
+
 } x86_CPU_state;
 
 // decode

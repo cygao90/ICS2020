@@ -82,6 +82,8 @@ static void checkregs(CPU_state *ref, vaddr_t pc) {
     printf("%X\n%X\n%X\n%X\n%X\n%X\n%X\n%X\n%X\n", 
             ref->eax, ref->ecx, ref->edx, ref->ebx,
             ref->esp, ref->ebp, ref->esi, ref->edi, ref->pc);
+    printf("CF %d  ZF %d  SF %d  OF %d\n", 
+          ref->EFLAGS.CF, ref->EFLAGS.ZF, ref->EFLAGS.SF, ref->EFLAGS.OF);
     nemu_state.state = NEMU_ABORT;
     nemu_state.halt_pc = pc;
   }

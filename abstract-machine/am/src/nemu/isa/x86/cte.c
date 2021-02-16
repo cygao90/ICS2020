@@ -15,12 +15,18 @@ void __am_vecnull();
 
 
 Context* __am_irq_handle(Context *c) {
+  printf("eax:%08X\necx:%08X\nedx:%08X\nebx:%08X\nesp:%08X\nebp:%08X\nesi:%08X\nedi:%08X\n", 
+    c->eax, c->ecx, c->edx, c->ebx, c->esp, c->ebp, c->esi, c->edi);
+  printf("cr3:%p\n", c->cr3);
+  printf("irq:%d\n", c->irq);
+  // printf("pc:%08X\ncs:%08X\neflags:%08X\n", c->eip, c->cs, c->eflags);
   if (user_handler) {
     Event ev = {0};
     switch (c->irq) {
+      case 0x81: ev.event = EVENT_YIELD; break;
       default: ev.event = EVENT_ERROR; break;
     }
-
+  printf("aaaaaaaaaaaaa\n");
     c = user_handler(ev, c);
     assert(c != NULL);
   }
