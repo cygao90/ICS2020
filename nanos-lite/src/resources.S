@@ -1,7 +1,7 @@
 .section .data
 .global ramdisk_start, ramdisk_end
 ramdisk_start:
-.incbin "/home/parallels/nju-ics2020/nanos-lite/build/ramdisk.img"
+.incbin "build/ramdisk.img"
 ramdisk_end:
 
 .section .rodata
