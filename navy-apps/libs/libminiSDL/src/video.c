@@ -3,16 +3,80 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
+#define PIXEL_LEN sizeof(uint32_t)
+/*
+ * src: the SDL_Surface structure to be copied from
+ * srcrect: the SDL_Rect structure representing the rectangle to be copied, or NULL to copy the entire surface
+ * dst: the SDL_Surface structure that is the blit target
+ * dstrect: the SDL_Rect structure representing the rectangle that is copied into (the width and height are ignored)
+ * 
+ * If srcrect is NULL, the entire surface is copied. If dstrect is NULL, then the destination position (upper left corner) is (0, 0).
+ */
 void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect) {
   assert(dst && src);
   assert(dst->format->BitsPerPixel == src->format->BitsPerPixel);
+  int src_w, src_h, src_x, src_y, dst_x, dst_y;
+  if (srcrect == NULL) {
+    src_w = src->w;
+    src_h = src->h;
+    src_x = src_y = 0; // full surface
+  } else {
+    src_w = srcrect->w;
+    src_h = srcrect->h;
+    src_x = srcrect->x;
+    src_y = srcrect->y;
+  }
+  if (dstrect == NULL) {
+    dst_x = dst_y = 0; // upper left corner
+  } else {
+    dst_x = dstrect->x;
+    dst_y = dstrect->y;
+  }
+  //printf("src_w: %d\nsrc_h: %d\nsrc_x: %d\nsrc_y: %d\ndst_x: %d\ndst_y: %d\n\n", src_w, src_h, src_x, src_y, dst_x, dst_y);
+  int i;
+  for (i = 0; i < src_h; i++) {
+    //printf("%d\n", i);
+    memcpy(dst->pixels + (dst_y + i) * dst->pitch + dst_x * PIXEL_LEN, src->pixels + (src_y + i) * src->pitch + src_x * PIXEL_LEN, src_w * PIXEL_LEN);
+  }
 }
 
 void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
+  int w, h, x, y;
+  if (dstrect == NULL) {
+    w = dst->w;
+    h = dst->h;
+    x = y = 0;
+  } else {
+    w = dstrect->w;
+    h = dstrect->h;
+    x = dstrect->x;
+    y = dstrect->y;
+  }
+  uint32_t *buf = (uint32_t*)malloc(PIXEL_LEN * w);
+  int i;
+  for (i = 0; i < w; i++) {
+    buf[i] = color;
+  }
+  for (i = 0; i < h; i++) {
+    memcpy(dst->pixels + (y + i) * dst->pitch + x, buf, w * PIXEL_LEN);
+  }
+  free(buf);
+  // int i, j;
+  // for (i = 0; i < h; i++) {
+  //   for (j = 0; j < w; j++) {
+  //     NDL_DrawRect(&color, x + j, y + i, 1, 1);
+  //   }
+  // }
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
+  if (x == 0 && y == 0 && w == 0 && h == 0) {
+    w = s->w;
+    h = s->h;
+  }
+  NDL_DrawRect(s->pixels, x, y, w, h);
 }
 
 // APIs below are already implemented.

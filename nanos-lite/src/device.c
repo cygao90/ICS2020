@@ -35,6 +35,9 @@ size_t events_read(void *buf, size_t offset, size_t len) {
     } else {
       sprintf(buf, "ku %s\n", keyname[ev.keycode]);
     }
+  } else {
+    // KEY_NONE
+    sprintf(buf, "NONE\n");
   }
   return strlen(buf);
 }

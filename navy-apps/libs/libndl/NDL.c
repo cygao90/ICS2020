@@ -17,7 +17,6 @@ uint32_t NDL_GetTicks() {
 }
 
 int NDL_PollEvent(char *buf, int len) {
-  //char tmp[64], event1[3], event2[20];
   int fd = open("/dev/events", 0, 0);
   read(fd, buf, len); // len is not used
   // sscanf(buf, "%s %s\n", event1, event2);
@@ -50,26 +49,20 @@ void NDL_OpenCanvas(int *w, int *h) {
     return;
   }
   if (*w == 0 && *h == 0) {
-    *w == screen_w;
+    *w = screen_w;
     *h = screen_h;
   }
-  printf("WIDTH:%d\n", *w);
-  printf("HEIGHT:%d\n", *h);
 }
 
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
   int fd = open("/dev/fb", 0, 0);
-  // screen_h = 800;
-  // screen_w = 600;
-  lseek(fd, (x * screen_h + screen_w) * sizeof(uint32_t), SEEK_SET);
-  // write(fd, pixels, w * h * sizeof(uint32_t));
-
+  lseek(fd, (y * screen_w + x) * sizeof(uint32_t), SEEK_SET);
+  
   // Write each line to the corresponding position
   int i, len = 0;
   for (i = 0; i < h; i++) {
-    printf("len: %d\n", len);
     len += (write(fd, pixels + len, w * sizeof(uint32_t))) / sizeof(uint32_t);
-    lseek(fd, ((x + i) * screen_w + y) * sizeof(uint32_t), SEEK_SET);
+    lseek(fd, ((y + i) * screen_w + x) * sizeof(uint32_t), SEEK_SET);
   }
 }
 

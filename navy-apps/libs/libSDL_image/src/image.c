@@ -4,6 +4,9 @@
 
 #define SDL_STBIMAGE_IMPLEMENTATION
 #include "SDL_stbimage.h"
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 SDL_Surface* IMG_Load_RW(SDL_RWops *src, int freesrc) {
   assert(src->type == RW_TYPE_MEM);
@@ -11,7 +14,15 @@ SDL_Surface* IMG_Load_RW(SDL_RWops *src, int freesrc) {
 }
 
 SDL_Surface* IMG_Load(const char *filename) {
-  return NULL;
+  int fd = open(filename, 0, 0);
+  int size = lseek(fd, 0, SEEK_END);
+  void *buf = malloc(size);
+  lseek(fd, 0, SEEK_SET);
+  read(fd, buf, size);
+  SDL_Surface *ret = STBIMG_LoadFromMemory(buf, size);
+  free(buf);
+  close(fd);
+  return ret;
 }
 
 int IMG_isPNG(SDL_RWops *src) {

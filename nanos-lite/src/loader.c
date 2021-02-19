@@ -24,7 +24,6 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   Elf_Ehdr *elf_ehdr = NULL;
   Elf_Phdr *elf_phdr = NULL;
   size_t size = fs_lseek(fd, 0, SEEK_END);
-  Log("file size is %d", size);
   void *base = malloc(size);
   fs_lseek(fd, 0, SEEK_SET);
   fs_read(fd, base, size);
@@ -38,10 +37,10 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
       memset(elf_phdr[i].p_vaddr + elf_phdr[i].p_filesz, 0, elf_phdr[i].p_memsz - elf_phdr[i].p_filesz);
     }
   }
+  uintptr_t entry = elf_ehdr->e_entry;
   free(base);
   fs_close(fd);
-  Log("entry: %d", elf_ehdr->e_entry);
-  return elf_ehdr->e_entry;
+  return entry;
 }
 
 void naive_uload(PCB *pcb, const char *filename) {
