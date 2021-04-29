@@ -5,10 +5,16 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <assert.h>
 
 static int evtdev = -1;
 static int fbdev = -1;
 static int screen_w = 0, screen_h = 0;
+static int canvas_w = 0, canvas_h = 0;
+static int canvas_x = 0, canvas_y = 0;
+static int fd_disp = 0;
+static int fd_fb = 0;
+static int fd_event = 0;
 
 uint32_t NDL_GetTicks() {
   struct timeval tv;
@@ -17,13 +23,18 @@ uint32_t NDL_GetTicks() {
 }
 
 int NDL_PollEvent(char *buf, int len) {
-  int fd = open("/dev/events", 0, 0);
-  read(fd, buf, len); // len is not used
-  // sscanf(buf, "%s %s\n", event1, event2);
-  // if (event1[0] == 'k' && (event1[1] == 'u' || event1[1] == 'd'))
-  // does not judge its validity for now
-  close(fd);
-  return 1;
+  assert(fd_event != 0);
+  int ret = read(fd_event, buf, len);
+  if (ret == 0)
+    return 0;
+  int i;
+  for (i = 0; i < len; i++) {
+    if (buf[i] == '\n') {
+      buf[i] = '\0';
+      return 1;
+    }
+  }
+  return 0;
 }
 
 void NDL_OpenCanvas(int *w, int *h) {
@@ -44,25 +55,35 @@ void NDL_OpenCanvas(int *w, int *h) {
     }
     close(fbctl);
   }
+  char buf[64];
+  read(fd_disp, buf, sizeof(buf));
+  sscanf(buf, "WIDTH:%d\nHEIGHT:%d", &screen_w, &screen_h);
   if (*w > screen_w || *h > screen_h) {
     printf("Canvas size out of screen.\n");
-    return;
+    assert(0);
   }
   if (*w == 0 && *h == 0) {
     *w = screen_w;
     *h = screen_h;
   }
+  canvas_w = *w;
+  canvas_h = *h;
+  canvas_x = (screen_w - canvas_w) / 2;
+  canvas_y = (screen_h - canvas_h) / 2; // 居中画布
 }
 
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
-  int fd = open("/dev/fb", 0, 0);
-  lseek(fd, (y * screen_w + x) * sizeof(uint32_t), SEEK_SET);
-  
-  // Write each line to the corresponding position
-  int i, len = 0;
-  for (i = 0; i < h; i++) {
-    len += (write(fd, pixels + len, w * sizeof(uint32_t))) / sizeof(uint32_t);
-    lseek(fd, ((y + i) * screen_w + x) * sizeof(uint32_t), SEEK_SET);
+  int sx = x + canvas_x;
+  int sy = y + canvas_y;
+  if (sx + w > canvas_x + canvas_w)
+    w -= sx + w - (canvas_x + canvas_w);
+  if (sy + h > canvas_y + canvas_h)
+    h -= sy + h - (canvas_y + canvas_h);
+  int start = 0;
+  for (int i = 0; i < h; i++) {
+    start = ((sy + i) * screen_w + sx) * 4;
+    lseek(fd_fb, start, SEEK_SET);
+    write(fd_fb, pixels + w * i, w * 4);
   }
 }
 
@@ -85,12 +106,13 @@ int NDL_Init(uint32_t flags) {
     evtdev = 3;
   }
   char buf[64];
-  int fd = open("/proc/dispinfo", 0, 0);
-  read(fd, buf, sizeof(buf));
-  sscanf(buf, "WIDTH:%d\nHEIGHT:%d", &screen_w, &screen_h);
-  close(fd);
+  fd_disp = open("/proc/dispinfo", 0, 0);
+  fd_fb = open("/dev/fb", 0, 0);
+  fd_event = open("/dev/events", 0, 0);
   return 0;
 }
 
 void NDL_Quit() {
+  close(fd_disp);
+  close(fd_fb);
 }

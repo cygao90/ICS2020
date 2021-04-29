@@ -29,16 +29,18 @@ size_t serial_write(const void *buf, size_t offset, size_t len) {
 size_t events_read(void *buf, size_t offset, size_t len) {
   AM_INPUT_KEYBRD_T ev = io_read(AM_INPUT_KEYBRD);
   int count = 0;
+  char buf1[64] = {0};
   if (ev.keycode != AM_KEY_NONE) {
     if (ev.keydown) {
-      sprintf(buf, "kd %s\n", keyname[ev.keycode]);
+      sprintf(buf1, "kd %s\n", keyname[ev.keycode]);
     } else {
-      sprintf(buf, "ku %s\n", keyname[ev.keycode]);
+      sprintf(buf1, "ku %s\n", keyname[ev.keycode]);
     }
   } else {
     // KEY_NONE
-    sprintf(buf, "NONE\n");
+    sprintf(buf1, "NONE\n");
   }
+  memcpy(buf, buf1, strlen(buf1));
   return strlen(buf);
 }
 
@@ -52,8 +54,11 @@ size_t dispinfo_read(void *buf, size_t offset, size_t len) {
 size_t fb_write(const void *buf, size_t offset, size_t len) {
   offset /= sizeof(uint32_t); // 4 bytes per pixel
   int w = io_read(AM_GPU_CONFIG).width;
+  int h = io_read(AM_GPU_CONFIG).height;
   int x = offset % w;
   int y = offset / w;
+  if (offset + len > w * h * sizeof(uint32_t))
+    len = w * h * sizeof(uint32_t) - offset;
   io_write(AM_GPU_FBDRAW, x, y, buf, len / sizeof(uint32_t), 1, true); // one line
 
   return len;
@@ -66,6 +71,15 @@ int timer(struct timeval *tv, struct timezone *tz) {
   tv->tv_usec = uptime.us - sec * 1000000;
   tz = NULL;
   return 0;
+}
+
+size_t fb_sync(const void *buf,size_t offset,size_t len)
+{
+  assert(((char*)buf)[0] == '1');
+  //printf("refresh\n");
+  assert(offset == 0);
+  io_write(AM_GPU_FBDRAW, 0, 0, NULL, 0, 0, true);
+  return 1;
 }
 
 void init_device() {

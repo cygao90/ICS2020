@@ -9,8 +9,8 @@ uint8_t* new_space(int size);
 typedef struct {
   char *name;
   // we treat ioaddr_t as paddr_t here
-  paddr_t low; // start address
-  paddr_t high; // end address
+  paddr_t low;
+  paddr_t high;
   uint8_t *space;
   io_callback_t callback;
 } IOMap;
@@ -33,7 +33,7 @@ static inline int find_mapid_by_addr(IOMap *maps, int size, paddr_t addr) {
 void add_pio_map(char *name, ioaddr_t addr, uint8_t *space, int len, io_callback_t callback);
 void add_mmio_map(char *name, paddr_t addr, uint8_t* space, int len, io_callback_t callback);
 
-word_t map_read(paddr_t addr, int len, IOMap *map);
+word_t map_read(paddr_t addr, int len, IOMap *map);    //将地址addr映射到map所指示的目并进行访问目标空间，
 void map_write(paddr_t addr, word_t data, int len, IOMap *map);
 
 #endif

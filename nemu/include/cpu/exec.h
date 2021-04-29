@@ -16,12 +16,16 @@
 #define EXW(idx, ex, w)       IDEXW(idx, empty, ex, w)
 #define EX(idx, ex)           EXW(idx, ex, 0)
 #define EMPTY(idx)            EX(idx, inv)
-
+//inv <=> invalid,最后会到def_EHelper(inv),导致display_inv_msg(cpu.pc);程序终止
 // set_width() is defined in src/isa/$isa/exec/exec.c
 #define CASE_ENTRY(idx, id, ex, w) case idx: set_width(s, w); id(s); ex(s); break;
 
+//set_width设置位宽
+//id对操作数译码  等价于def_DHelper(s)  (decode.h)
+//ex执行操作     等价于def_EHelper(s)  
+
 static inline uint32_t instr_fetch(vaddr_t *pc, int len) {
-  uint32_t instr = vaddr_ifetch(*pc, len);
+  uint32_t instr = vaddr_ifetch(*pc, len); //从内存中取出长度为len的字节
 #ifdef DEBUG
   uint8_t *p_instr = (void *)&instr;
   int i;

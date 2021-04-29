@@ -102,6 +102,7 @@ void init_monitor(int argc, char *argv[]) {
   /* Perform ISA dependent initialization. */
   init_isa();
 
+  //img_file = "/home/zhaochaoyi/ics2020/nanos-lite/build/nanos-lite-x86-nemu.bin";
   /* Load the image to memory. This will overwrite the built-in image. */
   long img_size = load_img();
 

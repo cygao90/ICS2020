@@ -42,23 +42,24 @@ void reg_test() {
 }
 
 void isa_reg_display() {
-  int i;
-  for (i = R_EAX; i <= R_EDI; i++) {
-    printf("%-15s0x%-15X%-15d\n", regsl[i], reg_l(i), reg_l(i));
-  }
-  printf("%-15s0x%-15X%-15d\n", "pc", cpu.pc, cpu.pc);
-  printf("CF %d  PF %d  AF %d  ZF %d  SF %d  TF %d\n", 
-          eflag(CF), eflag(PF), eflag(AF), eflag(ZF), eflag(SF), eflag(TF));
-  printf("DF %d  OF %d  NT %d  RF %d  VM %d\n", eflag(DF), eflag(OF), eflag(NT), eflag(RF), eflag(VM));
+  printf("eax=0x%x\n",cpu.eax);
+  printf("edx=0x%x\n",cpu.edx);
+  printf("ecx=0x%x\n",cpu.ecx);
+  printf("ebx=0x%x\n",cpu.ebx);
+  printf("ebp=0x%x\n",cpu.ebp);
+  printf("esi=0x%x\n",cpu.esi);
+  printf("edi=0x%x\n",cpu.edi);
+  printf("esp=0x%x\n",cpu.esp);
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
-  *success = true;
-  if (strcmp(s, "pc") == 0) return cpu.pc;
-  int i;
-  for (i = R_EAX; i <= R_EDI; i++) {
-    if (strcmp(s, regsl[i]) == 0) return reg_l(i);
-  }
-  *success = false;
-  return 0;
+    if(!strcmp(s,"$eax")) return cpu.eax;
+    if(!strcmp(s,"$edx")) return cpu.edx;
+    if(!strcmp(s,"$ecx")) return cpu.ecx;
+    if(!strcmp(s,"$ebx")) return cpu.ebx;
+    if(!strcmp(s,"$ebp")) return cpu.ebp;
+    if(!strcmp(s,"$esi")) return cpu.esi;
+    if(!strcmp(s,"$edi")) return cpu.edi;
+    if(!strcmp(s,"$esp")) return cpu.esp;
+    return 0;
 }

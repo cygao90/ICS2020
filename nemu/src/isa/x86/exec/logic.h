@@ -1,86 +1,132 @@
 #include "cc.h"
 
+
 static inline def_EHelper(test) {
-  // TODO();
-  rtl_and(s, s0, ddest, dsrc1);
-  rtl_set_OF(s, rz);
-  rtl_set_CF(s, rz);
-  rtl_update_ZFSF(s, s0, id_dest->width);
+  rtl_and(s,s0,ddest,dsrc1);
+  cpu.eflags.CF = 0;
+  cpu.eflags.OF = 0;
+  rtl_update_ZFSF(s,s0,s->dest.width);
+  /* rtl_msb(s,s1,s0,id_dest->width); */
+  /* cpu.eflags.ZF = *s0 == 0;
+  cpu.eflags.SF = *s1 == 1; */
   print_asm_template2(test);
 }
 
 static inline def_EHelper(and) {
-  // TODO();
-  rtl_sext(s, t0, dsrc1, id_src1->width);
-  rtl_and(s, ddest, ddest, t0);
-  rtl_set_CF(s, rz);
-  rtl_set_OF(s, rz);
-  rtl_update_ZFSF(s, ddest, id_dest->width);
-  operand_write(s, id_dest, ddest);
+  rtl_and(s,s0,ddest,dsrc1);
+  operand_write(s,id_dest,s0);
+  rtl_update_ZFSF(s,s0,id_dest->width);
+  cpu.eflags.CF=0;
+  cpu.eflags.OF=0;
+  /* rtl_msb(s,s1,s0,id_dest->width);
+  cpu.eflags.ZF = *s0 == 0;
+  cpu.eflags.SF = *s1 == 1; */
   print_asm_template2(and);
 }
 
 static inline def_EHelper(xor) {
-  // TODO();
-  rtl_sext(s, t0, dsrc1, id_src1->width);
-  rtl_xor(s, ddest, ddest, t0);
-  rtl_set_CF(s, rz);
-  rtl_set_OF(s, rz);
-  rtl_update_ZFSF(s, ddest, id_dest->width);
-  operand_write(s, id_dest, ddest);
+  rtl_xor(s, s0, ddest, dsrc1);
+  operand_write(s, id_dest, s0);
+  rtl_update_ZFSF(s,s0,id_dest->width);
+  cpu.eflags.CF=0;
+  cpu.eflags.OF=0;
+  /* rtl_msb(s,s1,s0,id_dest->width);
+  cpu.eflags.ZF = *s0 == 0;
+  cpu.eflags.SF = *s1 == 1; */
   print_asm_template2(xor);
-}
+}//计算用rtl_name，复制用 operand_write
 
 static inline def_EHelper(or) {
-  // TODO();
-  rtl_sext(s, t0, dsrc1, id_src1->width);
-  rtl_or(s, ddest, ddest, t0);
-  rtl_set_CF(s, rz);
-  rtl_set_OF(s, rz);
-  rtl_update_ZFSF(s, ddest, id_dest->width);
-  operand_write(s, id_dest, ddest);
+  rtl_or(s,s0,ddest,dsrc1);
+  operand_write(s,id_dest,s0);
+  cpu.eflags.CF=0;
+  cpu.eflags.OF=0;
+  rtl_update_ZFSF(s,s0,id_dest->width);
+  /* rtl_msb(s,s1,s0,id_dest->width);
+  cpu.eflags.ZF = *s0 == 0;
+  cpu.eflags.SF = *s1 == 1; */
+
   print_asm_template2(or);
 }
 
-static inline def_EHelper(not) {
-  // TODO();
-  rtl_not(s, ddest, ddest);
-  operand_write(s, id_dest, ddest);
-  print_asm_template1(not);
-}
-
 static inline def_EHelper(sar) {
-  // TODO();
+  
   // unnecessary to update CF and OF in NEMU
-  rtl_mv(s, s0, ddest);
-  rtl_mv(s, s1, dsrc1);
-  rtl_sar(s, ddest, s0, s1);
-  rtl_update_ZFSF(s, ddest, id_dest->width);
-  operand_write(s, id_dest, ddest);
+  rtl_mv(s,s0,dsrc1);
+  rtl_andi(s,s0,s0,c_shift_mask);
+  rtl_mv(s,s1,ddest);
+  while(*s0 != 0)
+  {
+    rtl_andi(s,s2,s1,1);
+    cpu.eflags.CF = *s2==1;
+    if(s->isa.is_operand_size_16)
+    {
+      *s1 = (int16_t)*s1 >> 1;
+    }
+    else {
+      rtl_sari(s,s1,s1,1);
+    }
+    rtl_subi(s,s0,s0,1);
+  }
+  operand_write(s,id_dest,s1);
+  if(*dsrc1 == 1) cpu.eflags.OF = 0;
+  cpu.eflags.ZF = *s1 == 0;
+  rtl_msb(s,s2,s1,id_dest->width);
+  cpu.eflags.SF = *s2 == 1;
   print_asm_template2(sar);
-}
+} //算术右移，故使用有符号除法  //当操作数位宽为16时，算术右移出错
 
 static inline def_EHelper(shl) {
-  // TODO();
+  
   // unnecessary to update CF and OF in NEMU
-  rtl_mv(s, s0, ddest);
-  rtl_mv(s, s1, dsrc1);
-  rtl_shl(s, ddest, s0, s1);
-  rtl_update_ZFSF(s, ddest, id_dest->width);
-  operand_write(s, id_dest, ddest);
+  rtl_mv(s,s0,dsrc1);
+  rtl_andi(s,s0,s0,c_shift_mask);
+  rtl_mv(s,s1,ddest);
+  while(*s0 != 0)
+  {
+    rtl_msb(s,s2,s1,id_dest->width);
+    cpu.eflags.CF = *s2==1;
+    rtl_shli(s,s1,s1,1);
+    rtl_subi(s,s0,s0,1);
+  }
+  operand_write(s,id_dest,s1);
+  if(*dsrc1 == 1)
+  {
+    rtl_msb(s,s2,s1,id_dest->width);
+    cpu.eflags.OF = *s2 != cpu.eflags.CF;
+  }
+  cpu.eflags.ZF = *s1 == 0;
+  rtl_msb(s,s2,s1,id_dest->width);
+  cpu.eflags.SF = *s2 == 1;
+
   print_asm_template2(shl);
-}
+}//shl,sal,左移相同
 
 static inline def_EHelper(shr) {
-  // TODO();
+  
   // unnecessary to update CF and OF in NEMU
-  rtl_mv(s, s0, ddest);
-  rtl_mv(s, s1, dsrc1);
-  rtl_shr(s, ddest, s0, s1);
-  rtl_update_ZFSF(s, ddest, id_dest->width);
-  operand_write(s, id_dest, ddest);
+  rtl_mv(s,s0,dsrc1);
+  rtl_andi(s,s0,s0,c_shift_mask);
+  rtl_mv(s,s1,ddest);
+  while(*s0 != 0)
+  {
+    rtl_andi(s,s2,s1,1);
+    cpu.eflags.CF = *s2==1;
+    rtl_shri(s,s1,s1,1);
+    rtl_subi(s,s0,s0,1);
+  }
+  operand_write(s,id_dest,s1);
+  if(*dsrc1 == 1) {
+    rtl_msb(s,s2,ddest,id_dest->width);
+    cpu.eflags.OF = *s2;//in nemu ,OF is necessary
+  }
+  cpu.eflags.ZF = *s1 == 0;
+  rtl_msb(s,s2,s1,id_dest->width);
+  cpu.eflags.SF = *s2 == 1;
+  print_asm_template2(sar);
   print_asm_template2(shr);
-}
+}//逻辑右移
+
 
 static inline def_EHelper(setcc) {
   uint32_t cc = s->opcode & 0xf;
@@ -90,119 +136,64 @@ static inline def_EHelper(setcc) {
   print_asm("set%s %s", get_cc_name(cc), id_dest->str);
 }
 
-static inline def_EHelper(rol) {
-#define CASEl(i, len)                                                          \
-  case (i):                                                                    \
-    count = *t0 & (len);                                                       \
-    while (count != 0) {                                                       \
-      tmpcf = (*t1 >> (len)) & 1;                                              \
-      *t1 = (*t1 << 1) | tmpcf;                                                \
-      count--;                                                                 \
-    }                                                                          \
-    break;
+static inline def_EHelper(not) {
+  rtl_not(s,s0,ddest);
+  operand_write(s,id_dest,s0);
 
-  rtl_mv(s, t0, dsrc1);
-  rtl_mv(s, t1, ddest);
-  uint32_t count = 0, tmpcf = 0;
-  switch (id_dest->width) {
-    CASEl(1, 7)
-    CASEl(2, 15)
-    CASEl(4, 31)
-  }
-  rtl_set_CF(s, &tmpcf);
-  if (count == 1) {
-    if (((*t1 >> 7) & 1) != tmpcf) {
-      rtl_li(s, s0, 1);
-      rtl_set_OF(s, s0);
-    } else {
-      rtl_li(s, s0, 0);
-      rtl_set_OF(s, s0);
-    }
-  }
-  operand_write(s, id_dest, t1);
+  print_asm_template1(not);
 }
 
-static inline def_EHelper(bsr) {
-  rtl_mv(s, t0, dsrc1);
-  rtl_mv(s, t1, ddest);
-  if (t0 == 0) {
-    rtl_li(s, s0, 1);
-    rtl_set_ZF(s, s0);
-  } else {
-    uint32_t tmp = *t1 = id_src1->width * 8 - 1;
-    rtl_li(s, s0, 0);
-    rtl_set_ZF(s, s0);
-    while (((*t0 >> tmp) & 1) == 0) {
-      tmp -= 1;
-      *t1 = tmp;
-    }
-  }
-  operand_write(s, id_dest, t1);
-}
-
-static inline def_EHelper(ror) {
-#define CASEr(i, len)                                                          \
-  case (i):                                                                    \
-    count = *t0 & (len);                                                       \
-    while (count != 0) {                                                       \
-      tmpcf = *t1 & 1;                                                         \
-      *t1 = (*t1 >> 1) | (tmpcf << len);                                       \
-      count--;                                                                 \
-    }                                                                          \
-    break;
-
-  rtl_mv(s, t0, dsrc1);
-  rtl_mv(s, t1, ddest);
-  uint32_t count = 0, tmpcf = 0;
-  switch (id_dest->width) {
-    CASEr(1, 7)
-    CASEr(2, 15)
-    CASEr(4, 31)
-  }
-  if (count == 1) {
-    if (((*t1 >> 7) & 1) != ((*t1 >> 6) & 1)) {
-      rtl_li(s, s0, 1);
-      rtl_set_OF(s, s0);
-    } else {
-      rtl_li(s, s0, 0);
-      rtl_set_OF(s, s0);
-    }
-  }
-  operand_write(s, id_dest, ddest);
-}
 
 static inline def_EHelper(shld) {
-  rtl_mv(s, t0, dsrc1);
-  rtl_mv(s, t1, dsrc2);
-  rtl_mv(s, s1, ddest);
-  uint8_t shift_amt = *t0 % 32;
-  uint32_t inBits = *t1;
-  if (shift_amt != 0) {
-    if (shift_amt < id_dest->width * 8) {
-      *s0 = ((*s1 >> (id_dest->width * 8 - shift_amt)) & 1);
-      rtl_set_CF(s, s0);
+  *s0 = *dsrc1%32;//ShiftAmt
+  *s1 = *dsrc2;//register
+  if(*s0 == 0);
+  else {
+    if(s->isa.is_operand_size_16)
+    {
+      rtl_shl(s,ddest,ddest,s0);
+      rtl_andi(s,ddest,ddest,0xffff);
+      rtl_andi(s,s1,s1,0xffff);
+      rtl_shri(s,s1,s1,16-*s0);
+      rtl_or(s,s1,s1,ddest);
+      operand_write(s,id_dest,s1);
     }
-    *s1 = *s1 << shift_amt;
-    *s1 |= ((inBits >> (id_src2->width * 8 - shift_amt)) & ((1 << shift_amt) - 1));
-    rtl_update_ZFSF(s, s1, id_dest->width);
+    else{
+      rtl_shl(s,ddest,ddest,s0);
+      rtl_shri(s,s1,s1,32-*s0);
+      rtl_or(s,s1,s1,ddest);
+      operand_write(s,id_dest,s1);
+    }
+    
   }
-  operand_write(s, id_dest, s1);
 }
 
-static inline def_EHelper(shrd) {
-  rtl_mv(s, t0, dsrc1);
-  rtl_mv(s, t1, dsrc2);
-  rtl_mv(s, s1, ddest);
-  uint8_t shfit_amt = *t0 % 32;
-  uint32_t inBits = *t1;
-  if (shfit_amt != 0) {
-    if (shfit_amt < id_dest->width * 8) {
-      *s0 = (*s1 >> (shfit_amt - 1)) & 1;
-      rtl_set_CF(s, s0);
+
+static inline def_EHelper(shrd)
+{
+  *s0 = *dsrc1%32;//ShiftAmt
+  *s1 = *dsrc2;//register
+  if(*s0 == 0);
+  else{
+    if(s->isa.is_operand_size_16)
+    {
+      rtl_shr(s,ddest,ddest,s0);
+      rtl_andi(s,ddest,ddest,0xffff);
+      rtl_andi(s,s1,s1,0xffff);
+      rtl_shli(s,s1,s1,16-*s0);
+      rtl_or(s,s1,s1,ddest);
+      operand_write(s,id_dest,s1);
     }
-    *s1 = *s1 >> shfit_amt;
-    *s1 |= (inBits & ((1 << shfit_amt) - 1)) << (id_src2->width * 8 - shfit_amt);
-    rtl_update_ZFSF(s, s1, id_dest->width);
+    else{
+      rtl_shr(s,ddest,ddest,s0);
+      rtl_shli(s,s1,s1,32-*s0);
+      rtl_or(s,s1,s1,ddest);
+      operand_write(s,id_dest,s1);
+    }
   }
-  operand_write(s, id_dest, s1);
 }
+
+/*
+t0, t1, ... - 只能在RTL伪指令的实现过程中存放中间结果
+s0, s1, ... - 只能在译码辅助函数和执行辅助函数的实现过程中存放中间结果
+*/

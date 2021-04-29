@@ -34,6 +34,7 @@ enum {
 static struct vm vm;
 static struct vcpu vcpu;
 
+
 // This should be called everytime after KVM_SET_REGS.
 // It seems that KVM_SET_REGS will clean the state of single step.
 static void kvm_set_step_mode(bool watch, uint32_t watch_addr) {
@@ -285,6 +286,7 @@ void difftest_getregs(void *r) {
   x86->esi = ref->rsi;
   x86->edi = ref->rdi;
   x86->pc  = ref->rip;
+  x86->eflags.eflags_value = ref->rflags;
 }
 
 void difftest_setregs(const void *r) {
@@ -313,3 +315,4 @@ void difftest_init(int port) {
   vcpu_init();
   run_protected_mode();
 }
+

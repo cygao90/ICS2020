@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#include "debug/watchpoint.h"
+
 /* The assembly code of instructions executed is only output to the screen
  * when the number of instructions executed is less than this value.
  * This is useful when you use the `si' command.
@@ -22,8 +24,23 @@ static uint64_t g_nr_guest_instr = 0;
 static uint64_t g_timer = 0; // unit: ms
 const rtlreg_t rzero = 0;
 
+/*
+自己添加的函数
+*/
+
+#ifdef DEBUG
+  WP* all_wp();
+  uint32_t val=0;
+  word_t expr(char *e, bool *success);
+#endif
+
+
+/*
+自己添加的函数
+*/
+
+
 void asm_print(vaddr_t this_pc, int instr_len, bool print_flag);
-bool check_watchpoint();
 
 int is_exit_status_bad() {
   int good = (nemu_state.state == NEMU_END && nemu_state.halt_ret == 0) ||
@@ -74,13 +91,18 @@ void cpu_exec(uint64_t n) {
   }
 
   uint64_t timer_start = get_time();
+#ifdef DEBUG
 
+  uint64_t num_of_instructions=n;
+  bool flag=true;
+#endif
   for (; n > 0; n --) {
     vaddr_t this_pc = cpu.pc;
 
     /* Execute one instruction, including instruction fetch,
      * instruction decode, and the actual execution. */
     __attribute__((unused)) vaddr_t seq_pc = isa_exec_once();
+    //译码部分，调用isa_exec_once
 
     difftest_step(this_pc, cpu.pc);
 
@@ -90,9 +112,28 @@ void cpu_exec(uint64_t n) {
     asm_print(this_pc, seq_pc - this_pc, n < MAX_INSTR_TO_PRINT);
 
     /* TODO: check watchpoints here. */
-    if (check_watchpoint()) {
-      nemu_state.state = NEMU_STOP;
+    WP* wp=all_wp();
+    
+    if(wp != NULL)
+    {
+      char * temp = (char *)malloc((strlen(wp->exp)+10) * sizeof(char));
+      strcpy(temp,wp->exp);
+      if(num_of_instructions==n)
+      {
+        val=expr(temp,&flag);
+      }
+      else{
+        if(val!=expr(temp,&flag))
+        {
+          nemu_state.state=NEMU_STOP;
+        }
+        if(!flag) assert(0);
+        val=expr(temp,&flag);
+      }
+      free(temp);
     }
+    
+
 #endif
 
 #ifdef HAS_IOE
@@ -112,7 +153,7 @@ void cpu_exec(uint64_t n) {
     case NEMU_END: case NEMU_ABORT:
       Log("nemu: %s\33[0m at pc = " FMT_WORD "\n\n",
           (nemu_state.state == NEMU_ABORT ? "\33[1;31mABORT" :
-           (nemu_state.halt_ret == 0 ? "\33[1;32mHIT GOOD TRAP" : "\33[1;31mHIT BAD TRAP")),
+          (nemu_state.halt_ret == 0 ? "\33[1;32mHIT GOOD TRAP" : "\33[1;31mHIT BAD TRAP")),
           nemu_state.halt_pc);
       // fall through
     case NEMU_QUIT:

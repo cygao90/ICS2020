@@ -44,7 +44,10 @@ static Finfo file_table[] __attribute__((used)) = {
 void init_fs() {
   // TODO: initialize the size of /dev/fb
   int fd = fs_open("/dev/fb", 0, 0);
-  file_table[fd].size = 400 * 300 * sizeof(uint32_t); //io_read(AM_GPU_CONFIG).width * io_read(AM_GPU_CONFIG).height * sizeof(uint32_t);
+  //file_table[fd].size = 400 * 300 * sizeof(uint32_t);
+  int w = io_read(AM_GPU_CONFIG).width;
+  int h = io_read(AM_GPU_CONFIG).height;
+  file_table[fd].size = w * h * sizeof(uint32_t);
 }
 
 int fs_open(const char *pathname, int flags, int mode) {
@@ -109,7 +112,10 @@ size_t fs_lseek(int fd, size_t offset, int whence) {
     default:
       panic("No such whence");
   }
-  assert(file_table[fd].open_offset <= file_table[fd].size);
+  // if (file_table[fd].open_offset < file_table[fd].size) {
+  //   panic("file [%s] wrong", file_table[fd].name);
+  // }
+  // assert(file_table[fd].open_offset < file_table[fd].size);
   return file_table[fd].open_offset;
 }
 
