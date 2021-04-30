@@ -1,7 +1,5 @@
 NAME = nemu
 
-MAKEFLAGS += -j 8
-
 ISA ?= x86
 ISAS = $(shell ls src/isa/)
 ifeq ($(filter $(ISAS), $(ISA)), ) # ISA must be valid
@@ -65,7 +63,7 @@ include Makefile.git
 CC = gcc
 LD = gcc
 INCLUDES  = $(addprefix -I, $(INC_DIR))
-CFLAGS   += -O2 -MMD -Wall -Werror -ggdb3 $(INCLUDES) \
+CFLAGS   += -O0 -g -MMD -Wall -Werror -ggdb3 $(INCLUDES) \
             -D__ENGINE_$(ENGINE)__ \
             -D__ISA__=$(ISA) -D__ISA_$(ISA)__ -D_ISA_H_=\"isa/$(ISA).h\"
 
@@ -100,7 +98,7 @@ NEMU_EXEC := $(BINARY) $(ARGS) $(IMG)
 $(BINARY): $(OBJS)
 	$(call git_commit, "compile")
 	@echo + LD $@
-	@$(LD) -O2 -rdynamic $(SO_LDLAGS) -o $@ $^ $(LD_LIBS)
+	@$(LD) -O0 -rdynamic $(SO_LDLAGS) -o $@ $^ $(LD_LIBS)
 
 run-env: $(BINARY) $(DIFF_REF_SO)
 
@@ -120,8 +118,5 @@ clean:
 	$(MAKE) -C tools/gen-expr clean
 	$(MAKE) -C tools/qemu-diff clean
 	$(MAKE) -C tools/kvm-diff clean
-
-
-
-
-
+count:
+	find . "(" -name "*.c" -or -name "*.h" ")" -print | xargs grep -v "^$$" | wc -l

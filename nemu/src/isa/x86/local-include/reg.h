@@ -15,6 +15,7 @@ static inline int check_reg_index(int index) {
 #define reg_l(index) (cpu.gpr[check_reg_index(index)]._32)
 #define reg_w(index) (cpu.gpr[check_reg_index(index)]._16)
 #define reg_b(index) (cpu.gpr[check_reg_index(index) & 0x3]._8[index >> 2])
+#define eflag(flag) (cpu.EFLAGS.flag)
 
 static inline const char* reg_name(int index, int width) {
   extern const char* regsl[];

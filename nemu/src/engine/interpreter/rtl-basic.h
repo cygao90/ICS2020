@@ -27,9 +27,9 @@ def_rtl_compute_reg_imm(sub)
 def_rtl_compute_reg_imm(and)
 def_rtl_compute_reg_imm(or)
 def_rtl_compute_reg_imm(xor)
-def_rtl_compute_reg_imm(shl)          //shl 逻辑左移,同算术左移
-def_rtl_compute_reg_imm(shr)          //shr 逻辑右移
-def_rtl_compute_reg_imm(sar)          //sar 算术右移
+def_rtl_compute_reg_imm(shl)
+def_rtl_compute_reg_imm(shr)
+def_rtl_compute_reg_imm(sar)
 
 
 static inline def_rtl(setrelop, uint32_t relop, rtlreg_t *dest,

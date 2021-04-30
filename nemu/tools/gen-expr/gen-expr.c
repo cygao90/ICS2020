@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <string.h>
 
-
 // this should be enough
 static char buf[65536] = {};
 static char code_buf[65536 + 128] = {}; // a little larger than `buf`
@@ -18,81 +17,47 @@ static char *code_format =
 "}";
 
 
-#define len 20000
-
-int idx;
-
-uint32_t choose(uint32_t x)
-{
-  return rand()%x;
+static int choose(int n) {
+  return rand() % n;
 }
 
-void gen(int x)
-{
-  buf[idx++]=x;
+static void gen_num() {
+  sprintf(buf + strlen(buf), "%u", (unsigned int)rand() % 10000);
+  buf[strlen(buf)] = '\0';
 }
 
-void gen_num()
-{
-  char temp[15];
-  sprintf(temp,"%d",rand());
-  int length=strlen(temp);
-  for(int i = 0;i < length;i++)
-  {
-    buf[idx++]=temp[i];
+static void gen(char a) {
+  sprintf(buf + strlen(buf), "%c", a);
+  buf[strlen(buf)] = '\0';
+}
+
+static void gen_rand_op() {
+  char opt;
+  switch (rand() % 4) {
+    case 0: opt = '+'; break;
+    case 1: opt = '-'; break;
+    case 2: opt = '*'; break;
+    case 3: opt = '/'; break;
   }
-  if(length!=0)
-    buf[idx++]='U';
-}
-
-void gen_rand_op(void)
-{
-  switch(choose(4))
-  {
-    case 0: buf[idx++]='+';break;
-    case 1: buf[idx++]='-';break;
-    case 2: buf[idx++]='*';break;
-    case 3: buf[idx++]='/';break;
-  }
-}
-
-void gra(void)
-{
-  int temp = choose(5);
-  for(int i = 0;i < temp;i++)
-  {
-    buf[idx++]=' ';
-  }
+  sprintf(buf + strlen(buf), "%c", opt);
+  buf[strlen(buf)] = '\0';
 }
 
 static inline void gen_rand_expr() {
-  if(idx > len)
-    {
-      gen_num();
-      return;
+  if (strlen(buf) < 1000) {
+    switch (choose(3)) {
+      case 0: gen_num(); break;
+      case 1: gen('('); gen_rand_expr(); gen(')'); break;
+      default: gen_rand_expr(); gen_rand_op(); gen_rand_expr(); break;
     }
-  gra();
-  switch (choose(3)) {
-    case 0: 
-      gen_num();
-      break;
-    case 1: 
-      gen('('); 
-      gen_rand_expr(); 
-      gen(')');
-      break;
-    default: 
-      gen_rand_expr(); 
-      gen_rand_op();  
-      gen_rand_expr(); 
-      break;
+  } else {
+    gen_num();
   }
-    
+  buf[strlen(buf)] = '\0';
 }
 
-
 int main(int argc, char *argv[]) {
-  unsigned seed = time(NULL);
+  int seed = time(0);
   srand(seed);
   int loop = 1;
   if (argc > 1) {
@@ -100,13 +65,8 @@ int main(int argc, char *argv[]) {
   }
   int i;
   for (i = 0; i < loop; i ++) {
-    buf[0]='\0';
-    code_buf[0]='\0';
-    idx=0;
+    memset(buf, 0, strlen(buf));
     gen_rand_expr();
-    buf[idx]='\0';
-    
-
     sprintf(code_buf, code_format, buf);
 
     FILE *fp = fopen("/tmp/.code.c", "w");
@@ -114,26 +74,22 @@ int main(int argc, char *argv[]) {
     fputs(code_buf, fp);
     fclose(fp);
 
-    int ret = system("gcc -Werror /tmp/.code.c -o /tmp/.expr");
+    int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
     if (ret != 0) continue;
 
     fp = popen("/tmp/.expr", "r");
     assert(fp != NULL);
 
-    int result=-1;
-    fscanf(fp, "%u", &result);
+    char buf1[30] = { 0 };
+    fread(buf1, sizeof(buf1), 1, fp);
+    if (strlen(buf1) == 0)
+      continue;
+
+    int result;
+    sscanf(buf1, "%d", &result);
     pclose(fp);
 
-    for(int i = 0;i < strlen(buf);i++)
-    {
-      if(buf[i]=='U')
-        buf[i]=' ';
-    }
-    if(result!=-1)
-      printf("%u %s\n", result, buf);
-    else i--;
-
-
+    printf("%u %s\n", result, buf);
   }
   return 0;
 }

@@ -12,12 +12,9 @@ void (*ref_difftest_exec)(uint64_t n) = NULL;
 static bool is_skip_ref = false;
 static int skip_dut_nr_instr = 0;
 
-extern int is_difftest;//用于判断是否进行difftest
-
 // this is used to let ref skip instructions which
 // can not produce consistent behavior with NEMU
 void difftest_skip_ref() {
-  if(is_difftest) return;
   is_skip_ref = true;
   // If such an instruction is one of the instruction packing in QEMU
   // (see below), we end the process of catching up with QEMU's pc to
@@ -36,7 +33,6 @@ void difftest_skip_ref() {
 //   Let REF run `nr_ref` instructions first.
 //   We expect that DUT will catch up with REF within `nr_dut` instructions.
 void difftest_skip_dut(int nr_ref, int nr_dut) {
-  if(is_difftest) return;
   skip_dut_nr_instr += nr_dut;
 
   while (nr_ref -- > 0) {
@@ -83,14 +79,17 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 static void checkregs(CPU_state *ref, vaddr_t pc) {
   if (!isa_difftest_checkregs(ref, pc)) {
     isa_reg_display();
+    printf("%X\n%X\n%X\n%X\n%X\n%X\n%X\n%X\n%X\n", 
+            ref->eax, ref->ecx, ref->edx, ref->ebx,
+            ref->esp, ref->ebp, ref->esi, ref->edi, ref->pc);
+    printf("CF %d  ZF %d  SF %d  OF %d\n", 
+          ref->EFLAGS.CF, ref->EFLAGS.ZF, ref->EFLAGS.SF, ref->EFLAGS.OF);
     nemu_state.state = NEMU_ABORT;
     nemu_state.halt_pc = pc;
   }
 }
 
 void difftest_step(vaddr_t this_pc, vaddr_t next_pc) {
-  if(is_difftest) return; //不进行比对
-
   CPU_state ref_r;
 
   if (skip_dut_nr_instr > 0) {
@@ -119,12 +118,3 @@ void difftest_step(vaddr_t this_pc, vaddr_t next_pc) {
   checkregs(&ref_r, this_pc);
 }
 
-//用于开关difftest
-/* void* guest_to_host(paddr_t addr);
-void difftest_memcpy_from_dut(paddr_t dest, void *src, size_t n);
-
-void set_state()
-{
-  difftest_memcpy_from_dut(0x100000,guest_to_host(0x100000),PMEM_SIZE-0X100000);
-  //difftest_setregs
-} */
