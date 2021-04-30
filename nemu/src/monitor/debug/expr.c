@@ -138,7 +138,7 @@ bool make_token(char* e)
 
 static bool is_opt(int opt)
 {
-    if (opt == '+' || opt == '-' || opt == '*' || opt == '/' || opt == TK_EQ || opt == TK_NOTEQUAL || opt == TK_AND || opt == TK_NEG) {
+    if (opt == '(' || opt == ')' || opt == '+' || opt == '-' || opt == '*' || opt == '/' || opt == TK_EQ || opt == TK_NOTEQUAL || opt == TK_AND || opt == TK_NEG || opt == DEREF) {
         return true;
     }
     return false;
@@ -149,6 +149,7 @@ static int opt_level(int opt, int* current)
     int level = 0;
     switch (opt) {
     case TK_NEG:
+    case DEREF:
         level = 2;
         break;
     case '+':
