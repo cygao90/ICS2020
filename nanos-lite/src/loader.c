@@ -49,3 +49,7 @@ void naive_uload(PCB *pcb, const char *filename) {
   ((void(*)())entry) ();
 }
 
+int sys_execve(const char *pathname, char *const argv[], char *const envp[]) {
+  Log("Loading [%s]", pathname);
+  naive_uload(NULL, pathname);
+}
