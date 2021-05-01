@@ -113,6 +113,16 @@ static int cmd_d(char *args) {
   return 0;
 }
 
+static int cmd_detach(char *args) {
+  is_difftest = false;
+  return 0;
+}
+
+static int cmd_attach(char *args) {
+  is_difftest = true;
+  return 0;
+}
+
 static struct {
   char *name;
   char *description;
@@ -130,6 +140,8 @@ static struct {
   { "p", "evaluate", cmd_p },
   { "w", "w [EXPR] watchpoint, stop the program when EXPR is true", cmd_w },
   { "d", "d [N] delete the watchpoint", cmd_d },
+  { "detach", "close difftest", cmd_detach },
+  { "attach", "start difftest", cmd_attach },
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))

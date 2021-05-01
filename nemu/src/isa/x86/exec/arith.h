@@ -31,7 +31,9 @@ static inline def_EHelper(sub) {
 static inline def_EHelper(cmp) {
   // TODO();
   rtl_mv(s, t0, ddest);
-  rtl_sext(s, t1, dsrc1, id_src1->width);
+  rtl_mv(s, t1, dsrc1);
+  if (id_dest->width > 1)
+    rtl_sext(s, t1, dsrc1, id_src1->width);
   rtl_sub(s, s0, t0, t1);
   rtl_is_sub_carry(s, s1, t0, t1);
   rtl_set_CF(s, s1);

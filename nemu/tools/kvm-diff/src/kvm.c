@@ -285,6 +285,7 @@ void difftest_getregs(void *r) {
   x86->esi = ref->rsi;
   x86->edi = ref->rdi;
   x86->pc  = ref->rip;
+  x86->EFLAGS.val = ref->rflags;
 }
 
 void difftest_setregs(const void *r) {

@@ -65,7 +65,7 @@ typedef struct {
       uint32_t RF       : 1;
       uint32_t VM       : 1;
       uint32_t resv5    : 14;
-    };
+    } ;
     uint32_t val;
   } EFLAGS;
 

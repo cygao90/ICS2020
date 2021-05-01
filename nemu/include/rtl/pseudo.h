@@ -32,9 +32,9 @@ static inline def_rtl(sext, rtlreg_t* dest, const rtlreg_t* src1, int width) {
   // TODO();
   assert(width > 0 && width <= 4);
   switch (width) {
-    case 1: *dest = (int8_t)(*src1); break;
-    case 2: *dest = (int16_t)(*src1); break;
-    case 4: *dest = (int32_t)(*src1); break;
+    case 1: *dest = *(int8_t*)(src1); break;
+    case 2: *dest = *(int16_t*)(src1); break;
+    case 4: *dest = *(int32_t*)(src1); break;
     default: assert(0);
   }
 }
