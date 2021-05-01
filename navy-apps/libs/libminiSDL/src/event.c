@@ -53,7 +53,7 @@ int SDL_PollEvent(SDL_Event *ev) {
 int SDL_WaitEvent(SDL_Event *event) {
   char buf[64] = {0};
   NDL_PollEvent(buf, sizeof(buf));
-  buf[strlen(buf) - 1] = '\0';
+  buf[strlen(buf)] = '\0';
   int i;
   for (i = 0; i < NR_KEY; i++) {
     if (strcmp(keyname[i], buf + 3) == 0) {
